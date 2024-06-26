@@ -1,0 +1,12 @@
+<RCC>
+  <qresource prefix="images">
+    <file>images/user.png</file>
+    <file>images/happiness.png</file>
+    <file>images/send.png</file>
+    <file>images/chat (1).png</file>
+    <file>images/emoji.png</file>
+    <file>images/wifi_off.png</file>
+    <file>images/background.jpg</file>
+    <file>images/wifi_on.png</file>
+  </qresource>
+</RCC>
