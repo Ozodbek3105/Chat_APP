@@ -115,10 +115,8 @@ class Client(QWidget, Ui_Chat):
 
     def foydalanuvchi_qoshildi(self, names):
         # print("names1", names)
-        # if names != "[]":
-        #     names = names.split(', ')
-        #     print("names2", names)
-        #     for name in names:
+        print("names2", names)
+
         item = QListWidgetItem()
         user = User(names)
         print("name", names)

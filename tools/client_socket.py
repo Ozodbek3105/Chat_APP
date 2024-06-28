@@ -91,9 +91,12 @@ class ClientSocket(QThread):
         if malumot['habar_turi'] == 0:
             if malumot['kirdi']:
                 print(f"{malumot['kimdan']} foydalanuvchi kirdi")
-                for foydalanuvchi in list(malumot['kimdan']):
-                    self.kirdi.emit(foydalanuvchi)
-
+                if isinstance(malumot['kimdan'],list):
+                    foydalanuvchilar = list(malumot['kimdan'])
+                    for foydalanuvchi in foydalanuvchilar:
+                        self.kirdi.emit(foydalanuvchi)
+                else:
+                    self.kirdi.emit(malumot['kimdan'])
             else:
                 print(f"{malumot['kimdan']} foydalanuvchi chiqdi")
                 self.chiqdi.emit(malumot['kimdan'])

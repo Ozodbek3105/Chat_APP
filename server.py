@@ -87,12 +87,12 @@ try:  # Qo'shildi
                     ulangan_mijoz_soketi, client_address = server_socket.accept()
                     soketlar_royhati.append(ulangan_mijoz_soketi)
 
-                    # kirgan foydalanuvchilar royxati
-                    foydalanuvchilar = list(clients.keys())
-                    print(foydalanuvchilar)
-                    foydalanuvchilar = json.dumps(foydalanuvchilar)
-                    malumot = malumotni_formatla(kirdi=True, habar_turi=0, foydalanuvchi=foydalanuvchilar)
-                    habarni_jonat(ulangan_mijoz_soketi, malumot)
+                    # kirgan foydalanuvchilar royxatini jo'nat
+                    if clients:
+                        foydalanuvchilar = list(clients.keys())
+                        print(foydalanuvchilar)
+                        malumot = malumotni_formatla(kirdi=True, habar_turi=0, foydalanuvchi=foydalanuvchilar)
+                        habarni_jonat(ulangan_mijoz_soketi, malumot)
                 else:
                     # Mavjud mijozdan xabar
                     malumot = habarni_qabul_qil(habar_kelgan_soket)
