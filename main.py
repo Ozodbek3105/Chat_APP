@@ -8,6 +8,11 @@ from windows.client import Client
 app = QApplication()
 
 window = LoginChat()
-window.show()
+res = window.exec()
+
+if res == LoginChat.Accepted:
+    # print(window.name)
+    chat = Client(window.name)
+    chat.show()
 
 app.exec()

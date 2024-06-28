@@ -1,12 +1,13 @@
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt, QSize, QTimer
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QHBoxLayout
 from PySide6.QtWidgets import QWidget, QListWidgetItem, QLabel
 
 from tools.client_socket import ClientSocket
-from ui.client_ui import Ui_clientForm
+from ui.client_ui import Ui_Chat
 from ui.message_page import MessagePage
 from ui.stickers import Emoji
+from ui.user_profile import User
 
 
 # from client.tools.client_socket import ClientSocket
@@ -88,7 +89,7 @@ from ui.stickers import Emoji
 #         return self.label.text()
 
 
-class Client(QWidget, Ui_clientForm):
+class Client(QWidget, Ui_Chat):
 
     def __init__(self, username, parent=None):
         super().__init__(parent)
@@ -106,6 +107,26 @@ class Client(QWidget, Ui_clientForm):
         self.emoji_btn.clicked.connect(self.emoji_page)
         self.client_socket.start()
 
+        # def closeEvent(self, event):
+        #     print("closeEvent")
+        #     self.client_socket.foydalanuvchi_chiqdi()
+
+        self.client_socket.kirdi.connect(self.foydalanuvchi_qoshildi)
+
+    def foydalanuvchi_qoshildi(self, names):
+        # print("names1", names)
+        # if names != "[]":
+        #     names = names.split(', ')
+        #     print("names2", names)
+        #     for name in names:
+        item = QListWidgetItem()
+        user = User(names)
+        print("name", names)
+        item.setSizeHint(user.sizeHint())
+        # self.listWidget.sizePolicy(10)
+        self.users_listWidget.addItem(item)
+        self.users_listWidget.setItemWidget(item, user)
+
     def set_internet_sign(self, on=True):
         self.lbl_internet.setPixmap(QPixmap(f":/images/images/wifi_{'on' if on else 'off'}.png"))
 
@@ -119,10 +140,11 @@ class Client(QWidget, Ui_clientForm):
         self.client_socket.send_message(text)
 
     def append_message(self, username, text, me=True):
-        print(text)
+        # print(text)
         item = QListWidgetItem()
         widget = MessagePage(me=me)
         widget.name_label.setText(username)
+        # print('append_message: ', username)
         self.top_name_lbl.setText(username)
         widget.message_label.setText(text)
         item.setSizeHint(widget.sizeHint())
@@ -135,6 +157,5 @@ class Client(QWidget, Ui_clientForm):
         self.emojiWidget.emoji.connect(self.write_emoji)
         self.emojiWidget.show()
 
-    def write_emoji(self,text):
+    def write_emoji(self, text):
         self.edit_text.setText(self.edit_text.text() + text)
-

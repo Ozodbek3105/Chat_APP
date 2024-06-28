@@ -1,7 +1,10 @@
 import errno
+import json
 import socket
 
 from PySide6.QtCore import QThread, Signal, Slot
+
+from tools.turli import malumotni_formatla
 
 HEADER_LENGTH = 10
 IP = "192.168.33.56"
@@ -12,6 +15,8 @@ class ClientSocket(QThread):
     received = Signal(str, str)
     connected = Signal()
     disconnected = Signal()
+    kirdi = Signal(str)
+    chiqdi = Signal(str)
 
     def __init__(self, username, ip=IP, port=PORT, parent=None):
         super().__init__(parent)
@@ -21,6 +26,9 @@ class ClientSocket(QThread):
         self.client_socket = None
         self.running = False
 
+    def close_socket(self):
+        self.client_socket.close()
+
     def run(self):
         """Main thread execution function."""
         self.running = True
@@ -28,15 +36,20 @@ class ClientSocket(QThread):
         self.client_socket.connect((self.ip, self.port))
         self.client_socket.setblocking(True)
 
-        username = self.username.encode('utf-8')
-        username_header = f"{len(username):<{HEADER_LENGTH}}".encode('utf-8')
-        self.client_socket.send(username_header + username)
+        # yanfgi foydalanuvchi kirganligi haqida jo'nat
+        # habar_turi:
+        #     0 - foydalanuvchi kirdi/chiqdi haqida
+        #     1 - oddiy habar
+        data = malumotni_formatla(habar_turi=0, kirdi=True, foydalanuvchi=self.username)
+
+        username_header = f"{len(data):<{HEADER_LENGTH}}".encode('utf-8')
+        self.client_socket.send(username_header + data)
 
         self.connected.emit()  # Emit connected signal
 
         while self.running:
             try:
-                self.receive_messages()
+                self.habarni_qabul_qilish()
             except IOError as e:
                 if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
                     print("Reading error", e)
@@ -53,30 +66,47 @@ class ClientSocket(QThread):
         """Handles sending messages to the server."""
         if self.client_socket and self.running:
             try:
-                message = message.encode('utf-8')
+                message = malumotni_formatla(habar=message, habar_turi=1, foydalanuvchi=self.username)
+
                 message_header = f"{len(message):<{HEADER_LENGTH}}".encode('utf-8')
                 self.client_socket.send(message_header + message)
+                print("message:", message)
+                print("message_header:", message_header)
             except (OSError, BrokenPipeError):
                 print("Disconnected from server.")
                 self.running = False
 
-    def receive_messages(self):
-        """Handles receiving messages from the server."""
-        username_header = self.client_socket.recv(HEADER_LENGTH)
-        if not len(username_header):
-            print("Connection closed by the server.")
-            self.running = False
-            return
+    # def foydalanuvchi_chiqdi(self):
+    #     malumot = malumotni_formatla(kirdi=False, habar_turi=0, foydalanuvchi=self.username)
+    #     message_header = f"{len(malumot):<{HEADER_LENGTH}}".encode('utf-8')
+    #     self.client_socket.send(message_header + malumot)
 
-        username_length = int(username_header.decode('utf-8'))
-        username = self.client_socket.recv(username_length).decode('utf-8')
+    def habarni_qabul_qilish(self):
+        """Handles receiving messages from the server."""
 
         message_header = self.client_socket.recv(HEADER_LENGTH)
         message_length = int(message_header.decode('utf-8'))
-        message = self.client_socket.recv(message_length).decode('utf-8')
+        malumot = self.client_socket.recv(message_length).decode('utf-8')
+        malumot = json.loads(malumot)
+        if malumot['habar_turi'] == 0:
+            if malumot['kirdi']:
+                print(f"{malumot['kimdan']} foydalanuvchi kirdi")
+                for foydalanuvchi in list(malumot['kimdan']):
+                    self.kirdi.emit(foydalanuvchi)
 
-        print(f"{username} > {message}")
-        self.received.emit(username, message)
+            else:
+                print(f"{malumot['kimdan']} foydalanuvchi chiqdi")
+                self.chiqdi.emit(malumot['kimdan'])
+
+        else:
+            # print("username:", username)
+            # print("username_length:", username_length)
+            # print("username_header:", username_header)
+            # print("malumot:", malumot)
+            # print("message_header:", message_header)
+            # print("message_length:", message_length)
+            # print(f"{username} > {malumot}")
+            self.received.emit(malumot['kimdan'], malumot['habar'])
 
     def stop(self):
         """Stops the thread and closes the connection."""

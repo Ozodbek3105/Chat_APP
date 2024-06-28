@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>clientForm</class>
- <widget class="QWidget" name="clientForm">
+ <class>Chat</class>
+ <widget class="QWidget" name="Chat">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -166,9 +166,9 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="1" column="0">
-       <widget class="QListWidget" name="listWidget_2">
+       <widget class="QListWidget" name="users_listWidget">
         <property name="styleSheet">
-         <string notr="true"/>
+         <string notr="true">background-color: rgb(255, 255, 255);</string>
         </property>
        </widget>
       </item>
